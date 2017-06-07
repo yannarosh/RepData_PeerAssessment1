@@ -1,11 +1,6 @@
----
-title: "Reproducible Research - Course Project 1"
-author: "Yannis Moros"
-date: "June, 2017"
-output:
-  html_document: 
-    keep_md: yes
----
+# Reproducible Research - Course Project 1
+Yannis Moros  
+June, 2017  
 
 # Introduction
 
@@ -45,12 +40,14 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 ## Setup
 1. Set knitr options
-```{r setup}
+
+```r
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 2. Specify required R packages
-```{r required}
+
+```r
 require(ggplot2)
 ```
 
@@ -59,7 +56,8 @@ require(ggplot2)
 
 1. Load the data
 
-```{r load1}
+
+```r
 # Assume working directory is set to the directory containing the project files.
 
 if(!file.exists("./activity.csv")) {
@@ -69,43 +67,67 @@ A <- read.csv("activity.csv")
 ```
 
 2. Process/transform the data into a format suitable for analysis
-```{r load2}
+
+```r
 A$date <- as.Date(A$date)
 ```
 
 ## What is mean total number of steps taken per day?
 
 1. Make a histogram of the total number of steps taken each day
-```{r meansteps1}
+
+```r
 A_day_tot <- aggregate(steps ~ date, A, sum)
 g <- ggplot(data = A_day_tot, aes(A_day_tot$steps))
 g + geom_histogram(fill = "steel blue") + xlab("No. of steps") + ylab("Frequency") + 
         ggtitle("Total number of steps per day (missing values ignored)")
 ```
 
-2. Calculate and report the **mean** and **median** total number of steps taken per day
-```{r meansteps2}
-mean(A_day_tot$steps)
+![](PA1_template_files/figure-html/meansteps1-1.png)<!-- -->
 
+2. Calculate and report the **mean** and **median** total number of steps taken per day
+
+```r
+mean(A_day_tot$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(A_day_tot$steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis)
 and the average number of steps taken, averaged across all days (y-axis)
-```{r dailyact1}
+
+```r
 A_int_means <- aggregate(steps ~ interval, A, mean)
 g <- ggplot(data = A_int_means, aes(A_int_means$interval, A_int_means$steps))
 g + geom_line(color = "orange", size = 2) + xlab("5-min. intervals") + ylab("avg. daily steps") + 
         ggtitle("Average daily activity pattern")
 ```
 
+![](PA1_template_files/figure-html/dailyact1-1.png)<!-- -->
+
 2. Which 5-minute interval, on average across all the days in the dataset,
 contains the maximum number of steps?
 
-```{r dailyact2}
+
+```r
 A_int_means[which.max(A_int_means$steps), ]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
@@ -116,8 +138,13 @@ calculations or summaries of the data.
 
 1. Calculate and report the total number of missing values in the dataset
 
-```{r missing1}
+
+```r
 sum(is.na(A))
+```
+
+```
+## [1] 2304
 ```
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The
@@ -130,7 +157,8 @@ that interval.
 3. Create a new dataset that is equal to the original dataset but with the
 missing data filled in.
 
-```{r missing3}
+
+```r
 # merge the full data set with the one holding mean interval steps
 # first change the col name to avoid duplication
 colnames(A_int_means) <- c("interval", "mean.steps")
@@ -155,29 +183,56 @@ these values differ from the estimates from the first part of the assignment?
 What is the impact of imputing missing data on the estimates of the total
 daily number of steps?
 
-```{r missing4}
+
+```r
 A_imp_day_tot <- aggregate(steps ~ date, A_imputed, sum)
 g <- ggplot(data = A_imp_day_tot, aes(A_imp_day_tot$steps))
 g + geom_histogram(fill = "red") + xlab("No. of steps") + ylab("Frequency") + 
         ggtitle("Total number of steps per day (missing values imputed)")
+```
 
+![](PA1_template_files/figure-html/missing4-1.png)<!-- -->
+
+```r
 mean(A_imp_day_tot$steps)
+```
 
+```
+## [1] 10765.64
+```
+
+```r
 median(A_imp_day_tot$steps)
 ```
 
+```
+## [1] 10762
+```
+
 Impact of imputing missing data:
-```{r missing_impact}
+
+```r
 # calculate differences in mean and median
 mean(A_imp_day_tot$steps) - mean(A_day_tot$steps)
+```
 
+```
+## [1] -0.549335
+```
+
+```r
 median(A_imp_day_tot$steps) - median(A_day_tot$steps)
+```
+
+```
+## [1] -3
 ```
 
 Considering that these numbers refer to total steps per day, and that rounding 
 took place, the impact on the mean and median is practically 0.
 
-```{r missing_impact2}
+
+```r
 # create matrix A_diff which has both imputed and not imputed steps (row-bound)
 # first add an additional column to both aggregate matrices - imputed:yes/no
 A_day_tot$imputed <- "no"
@@ -192,6 +247,8 @@ ggplot(A_diff, aes(steps, fill = imputed, col = imputed)) +
         ggtitle("Total number of steps per day (missing vs. imputed)")
 ```
 
+![](PA1_template_files/figure-html/missing_impact2-1.png)<!-- -->
+
 As seen in the histogram, after imputing NAs, more days have a total number of steps
 equal to the mean (~10765), which makes sense considering the inputation method.
 
@@ -204,7 +261,8 @@ with the filled-in missing values for this part.
 and "weekend" indicating whether a given date is a weekday or weekend
 day.
 
-``` {r weekends1}
+
+```r
 for (i in 1:nrow(A_imputed)) {
         if(weekdays(A_imputed[i, "date"]) %in% c("Saturday", "Sunday")) {
                 A_imputed[i, "weekday"] <- "Weekend"
@@ -224,13 +282,16 @@ the activity monitor data. Note that the above plot was made using the lattice
 system but you can make the same version of the plot using any plotting system
 you choose.
 
-``` {r weekends2}
+
+```r
 A_int_means_weekday <- aggregate(steps ~ weekday + interval, data = A_imputed, mean)
 
 ggplot(A_int_means_weekday, aes(interval, steps, col = weekday)) + geom_line(size = 1.2) + 
         facet_grid(weekday ~ .) + xlab("5 min. interval") + ylab("avg. no. of steps") + 
         ggtitle("Average no. of steps (weekdays vs. weekends)")
 ```
+
+![](PA1_template_files/figure-html/weekends2-1.png)<!-- -->
 
 
 
